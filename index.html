@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมตบคำถาม</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="bg-blue-100 flex justify-center items-center h-screen">
+    <div class="bg-white shadow-lg rounded-lg p-6 text-center w-96 transition-transform duration-500" id="game-container">
+        <h1 class="text-2xl font-bold text-blue-600">เกมตบคำถาม</h1>
+        <p id="question" class="mt-4 text-lg font-semibold text-gray-700">รอคำถาม...</p>
+        <input type="text" id="answer" class="mt-4 w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="พิมพ์คำตอบ">
+        <button onclick="sendAnswer()" class="mt-4 w-full bg-blue-500 text-white font-bold py-2 rounded hover:bg-blue-700 transition">ส่งคำตอบ</button>
+        <p id="result" class="mt-4 text-lg font-medium text-gray-700"></p>
+    </div>
+
+    <audio id="correct-sound" src="correct.mp3"></audio>
+    <audio id="wrong-sound" src="wrong.mp3"></audio>
+
+    <script>
+        const socket = io();
+
+        socket.on('newQuestion', (question) => {
+            document.getElementById('question').innerText = question;
+            document.getElementById('result').innerText = "";
+            document.getElementById('game-container').classList.remove("scale-110", "shake");
+        });
+
+        socket.on('correctAnswer', (message) => {
+            document.getElementById('result').innerText = message;
+            document.getElementById('result').classList.add("text-green-600");
+            document.getElementById('game-container').classList.add("scale-110");
+            document.getElementById('correct-sound').play();
+        });
+
+        socket.on('wrongAnswer', (message) => {
+            document.getElementById('result').innerText = message;
+            document.getElementById('result').classList.add("text-red-600");
+            document.getElementById('game-container').classList.add("shake");
+            document.getElementById('wrong-sound').play();
+        });
+
+        function sendAnswer() {
+            const answer = document.getElementById('answer').value;
+            socket.emit('answer', answer);
+        }
+    </script>
+
+    <style>
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-5px); }
+            40% { transform: translateX(5px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+    </style>
+</body>
+</html>
